@@ -3,11 +3,11 @@ import 'package:validacion_formulario/bloc/login_bloc.dart';
 import 'package:validacion_formulario/bloc/provider.dart';
 import 'package:validacion_formulario/providers/usuario_provider.dart';
 
-class Login extends StatelessWidget {
+class RegistroPage extends StatelessWidget {
   final usuarioProvider = new UsuarioProvider();
-
   @override
   Widget build(BuildContext context) {
+    final bloc = Provider.of(context);
     return Scaffold(
       body: Container(
         height: double.maxFinite,
@@ -67,9 +67,10 @@ class Login extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.lock_outline_rounded, size: 100, color: Colors.white),
+            Icon(Icons.supervised_user_circle_rounded,
+                size: 100, color: Colors.white),
             Text(
-              'Inicie Sesion',
+              'Crear Cuenta',
               style: TextStyle(
                   color: Colors.white,
                   fontSize: 30.0,
@@ -96,7 +97,7 @@ class Login extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Text('Ingresar',
+                Text('Registrarme',
                     style: TextStyle(
                         fontSize: 20.0,
                         fontWeight: FontWeight.bold,
@@ -122,9 +123,9 @@ class Login extends StatelessWidget {
                 SizedBox(
                   height: 10.0,
                 ),
-                _crearBotonLogin(
-                    'Ingresar', Colors.black, Colors.orangeAccent, context),
-                _crearBotonCrearCuenta(context),
+                _crearBotonRegistro(
+                    'Crear Cuenta', Colors.black, Colors.orangeAccent, bloc),
+                _crearBotonLogin(context),
                 SizedBox(),
               ],
             ),
@@ -159,10 +160,8 @@ class Login extends StatelessWidget {
         });
   }
 
-  Widget _crearBotonLogin(
-      String titulo, Color colorTexto, Color colorBoton, BuildContext context) {
-    final bloc = Provider.of(context);
-
+  Widget _crearBotonRegistro(
+      String titulo, Color colorTexto, Color colorBoton, LoginBloc bloc) {
     return StreamBuilder(
         stream: bloc.formValidStream,
         builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
@@ -187,7 +186,7 @@ class Login extends StatelessWidget {
         });
   }
 
-  Widget _crearBotonCrearCuenta(BuildContext context) {
+  Widget _crearBotonLogin(BuildContext context) {
     return ElevatedButton.icon(
       style: ButtonStyle(
           elevation: MaterialStateProperty.all<double>(
@@ -197,10 +196,13 @@ class Login extends StatelessWidget {
             Colors.white,
           ),
           padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
-              EdgeInsets.symmetric(horizontal: 25.0))),
-      onPressed: () => Navigator.of(context).pushReplacementNamed('registro'),
-      icon: Icon(Icons.login),
-      label: Text('Crear Cuenta',
+              EdgeInsets.symmetric(horizontal: 65.0))),
+      onPressed: () => Navigator.of(context).pushReplacementNamed('login'),
+      icon: Icon(
+        Icons.login,
+        color: Colors.black87,
+      ),
+      label: Text('Login',
           style: TextStyle(
             color: Colors.black87,
           )),
@@ -208,21 +210,20 @@ class Login extends StatelessWidget {
   }
 
   _login(BuildContext context, LoginBloc bloc) async {
-    Map<String, dynamic> resp =
-        await usuarioProvider.login(email: bloc.email, password: bloc.password);
-
-    if (resp['ok'] == true)
-      Navigator.of(context).pushReplacementNamed('home');
-    else {
-      final snack = SnackBar(
-        content: Text(
-          resp['mensaje'],
-          style: TextStyle(color: Colors.black, fontSize: 18.0),
-        ),
-        duration: Duration(milliseconds: 1500),
-        backgroundColor: Colors.orangeAccent,
-      );
-      ScaffoldMessenger.of(context).showSnackBar(snack);
+    Map<String, dynamic> resp = await usuarioProvider.nuevoUsuario(
+        email: bloc.email, password: bloc.password);
+    if (resp['ok'] == true) Navigator.of(context).pushReplacementNamed('home');
+    else{
+         final snack = SnackBar(
+      content: Text(
+        resp['mensaje'],
+        style: TextStyle(color: Colors.black, fontSize: 18.0),
+      ),
+      duration: Duration(milliseconds: 1500),
+      backgroundColor: Colors.orangeAccent,
+    );
+     ScaffoldMessenger.of(context).showSnackBar(snack);
     }
+
   }
 }
