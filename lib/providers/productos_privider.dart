@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:mime_type/mime_type.dart';
 import 'package:validacion_formulario/model/producto_model.dart';
+import 'package:validacion_formulario/preferencia_usuario/preferencia_usuario.dart';
 
 class ProductosProvider {
   final String _urlFireBase =
@@ -12,18 +13,24 @@ class ProductosProvider {
   final String _urlCloudinary =
       'https://api.cloudinary.com/v1_1/dmbiaibqc/image/upload?upload_preset=qdb9qe06';
 
-  Future<bool> crearProducto(ProductoModel productoModel) async {
-    final url = Uri.https(_urlFireBase, '/productos.json');
+  final prefs = new PreferenciasUsuario();
+
+  Future<String> crearProducto(ProductoModel productoModel) async {
+    final url = Uri.https(_urlFireBase, '/productos.json', {
+      'auth': prefs.token,
+    });
 
     final resp = await http.post(url, body: productoModelToJson(productoModel));
 
     final decodeData = json.decode(resp.body);
 
-    return true;
+    return decodeData['name'];
   }
 
   Future<bool> modificarProducto(ProductoModel productoModel) async {
-    final url = Uri.https(_urlFireBase, '/productos/${productoModel.id}.json');
+    final url = Uri.https(_urlFireBase, '/productos/${productoModel.id}.json', {
+      'auth': prefs.token,
+    });
 
     final resp = await http.put(url, body: productoModelToJson(productoModel));
 
@@ -33,7 +40,9 @@ class ProductosProvider {
   }
 
   Future<List<ProductoModel>> cargarProductos() async {
-    final url = Uri.https(_urlFireBase, '/productos.json');
+    final url = Uri.https(_urlFireBase, '/productos.json', {
+      'auth': prefs.token,
+    });
 
     final resp = await http.get(url);
 
@@ -52,7 +61,9 @@ class ProductosProvider {
   }
 
   Future<int> borrarProducto(String id) async {
-    final url = Uri.https(Uri.encodeFull(_urlFireBase), '/productos/$id.json');
+    final url = Uri.https(Uri.encodeFull(_urlFireBase), '/productos/$id.json', {
+      'auth': prefs.token,
+    });
 
     final resp = await http.delete(url);
 
@@ -63,10 +74,11 @@ class ProductosProvider {
 
   Future<String> subirImagen(File imagen) async {
     //De este modo no se puede cargar la url. Utilizar Uri.parse
-   // final url = Uri.https(Uri.encodeFull(_urlCloudinary),'');
+    // final url = Uri.https(Uri.encodeFull(_urlCloudinary),'');
     final mineType = mime(imagen.path).split('/');
 
-    final imageUploadRequest = http.MultipartRequest('POST',Uri.parse(_urlCloudinary));
+    final imageUploadRequest =
+        http.MultipartRequest('POST', Uri.parse(_urlCloudinary));
 
     final file = await http.MultipartFile.fromPath('file', imagen.path,
         contentType: MediaType(mineType[0], mineType[1]));
